@@ -1,40 +1,57 @@
-**Enhancing Network Performance with DNS Cache in Ryu SDN Controller using Mininet**
+# DNS Caching in an SDN Network
 
-**Overview**
+Speeds up DNS lookups in a software-defined network by caching DNS responses inside the **Ryu SDN controller**, tested on a virtual network built with **Mininet**.
 
-This project aims to improve network performance by implementing an efficient DNS cache within a Software-Defined Networking (SDN) framework. We address the issue of slow DNS resolution times for frequently accessed domain names, which causes delays and depletes network resources. Our solution uses the Ryu SDN controller in a Mininet virtual environment to internalize DNS requests, thereby speeding up query responses and enhancing overall network efficiency.
+## The Problem
 
-**Key Goals**
-Reduce DNS Resolution Times: Optimize the process of translating domain names to IP addresses.
+Frequently visited domain names are resolved again and again. Each lookup travels to the DNS server, which adds delay and wastes network resources.
 
-Implement DNS Cache: Develop and deploy a robust DNS caching system within the SDN architecture.
+## The Solution
 
-Enhance Network Performance: Improve user experience, reliability, and overall network efficiency within the SDN domain.
+The Ryu controller intercepts DNS traffic. When a domain has been looked up before, the controller answers from its cache instead of forwarding the request to the DNS server.
 
-**Technologies Used**
-Software-Defined Networking (SDN): Centralized control and programmable infrastructure.
+**Goals**
 
-Ryu SDN Controller: An open-source, Python-based controller for managing virtual networks.
+- Reduce DNS resolution time for repeated queries
+- Implement a DNS cache inside the SDN architecture
+- Improve overall network performance and reliability
 
-Mininet: A network emulator for creating virtual network topologies for testing.
+## Tech Stack
 
-DNS (Domain Name System) & DNS Cache: Core internet infrastructure for name-to-IP translation, with caching to speed up repeated queries.
+| Tool | Role |
+|---|---|
+| Ryu | Python-based SDN controller (hosts the DNS cache logic) |
+| Mininet | Emulates the virtual network topology |
+| BIND9 | DNS server |
+| Ubuntu on VirtualBox | Development and test environment |
+| Python | Topology and controller scripts |
 
-BIND9: Open-source DNS server software used for DNS services.
+## Architecture
 
-Oracle VirtualBox & Ubuntu: Virtualization platform and guest operating system for the environment setup.
+```
+Mininet hosts  -->  OpenFlow switch  -->  Ryu controller (DNS cache)  -->  BIND9 DNS server
+                                               |
+                                     cache hit: reply immediately
+```
 
-Proposed Approach
-We set up a virtualized environment using Oracle VirtualBox with Ubuntu. Within this, Mininet creates a virtual network topology. The Ryu SDN controller is then integrated to manage network flows and specifically implement the DNS caching mechanism. Python scripts are used to define the topology and control the DNS caching logic.
+## How to Test
 
-**Challenges Faced**
-During implementation, significant version compatibility issues arose between Mininet, Ryu, and Eventlet (a concurrency library). These hurdles highlight the importance of careful version management and thorough testing for seamless integration in SDN environments.
+1. Start the Mininet topology script.
+2. Start the Ryu controller script with DNS caching enabled.
+3. Open a terminal on a Mininet host with `xterm`.
+4. Run the same lookup several times and compare response times:
 
-Testing Procedure
-Execute a Mininet topology script.
+   ```bash
+   dig example.com
+   nslookup example.com
+   ```
 
-Connect the Ryu SDN controller script to integrate DNS caching.
+   The first query goes to the DNS server. Repeat queries are answered from the cache and return faster.
 
-Access Mininet hosts via xterm.
+## Challenges
 
-Use nslookup or dig multiple times to verify DNS query caching and improved response times.
+Version conflicts between Mininet, Ryu, and Eventlet (Ryu's concurrency library) were the biggest hurdle. Pin compatible versions before setting up the environment.
+
+## Report
+
+The full design, implementation, and results are in [`Project Report.pdf`](Project%20Report.pdf).
